@@ -5,7 +5,12 @@ env:
   PROJECT_PATH: ./GithubActions\GithubActions.csproj
 on:
   workflow_dispatch:
-
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
