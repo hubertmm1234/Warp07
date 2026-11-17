@@ -1,8 +1,5 @@
 name: Build .NET project
 
-env:
-  DOTNET_VERSION: 10.0.x
-  PROJECT_PATH: ./GithubActions\GithubActions.csproj
 on:
   workflow_dispatch:
   push:
@@ -11,6 +8,11 @@ on:
   pull_request:
     branches:
       - main
+
+env:
+  DOTNET_VERSION: 10.0.x
+  PROJECT_PATH: C:\Users\s37530\Warp07\GithubActions\GithubActions.csproj
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,17 +21,23 @@ jobs:
       - name: Confirm runner
         shell: bash
         run: echo "Runner is ready"
+
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+
       - name: Restore dependencies
         shell: bash
-              - name: Build project
+        run: dotnet restore "$PROJECT_PATH"
+
+      - name: Build project
         shell: bash
         run: dotnet build "$PROJECT_PATH" --configuration Release --no-restore
-        - name: Run project
+
+      - name: Run project
         shell: bash
         run: dotnet run --project "$PROJECT_PATH" --configuration Release --no-build
