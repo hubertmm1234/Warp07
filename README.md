@@ -13,9 +13,9 @@ Krótki opis projektu: co robi aplikacja i do czego służy.
 ## Uruchomienie lokalne
 
 ```powershell
-dotnet restore "./src/MyApp/MyApp.csproj"
-dotnet build "./src/MyApp/MyApp.csproj" --configuration Release
-dotnet run --project "./src/MyApp/MyApp.csproj"
+dotnet restore "GithubActions/GithubActions.csproj"
+dotnet build "GithubActions/GithubActions.csproj" --configuration Release
+dotnet run --project "GithubActions/GithubActions.csproj"
 ```
 
 ## Continuous Integration
@@ -34,7 +34,7 @@ Push do brancha roboczego uruchamia kontrolę wtedy, gdy ma on otwarty Pull Requ
 
 ### Co jest sprawdzane
 
-- **Projekt:** `./src/MyApp/MyApp.csproj` (zmienna `PROJECT_PATH` w sekcji `env` workflow)
+- **Projekt:** `GithubActions/GithubActions.csproj` 
 - **Wersja .NET:** `X.0`
 - **Środowisko:** `ubuntu-latest`
 
@@ -107,4 +107,4 @@ Historia commitów i uruchomień Actions zawiera zarówno commit wywołujący b�
 
 ## Autor
 
-Imię Nazwisko – nr albumu
+Hubert Michalski
