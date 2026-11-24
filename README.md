@@ -1,33 +1,110 @@
-Continuous Integration
-(Optional) Status build: [![CI](https://github.com/<WŁAŚCICIEL>/<NAZWA_REPO>/actions/workflows/<NAZWA_WORKFLOW>/badge.svg)](https://github.com/<WŁAŚCICIEL>/<NAZWA_REPO>/actions/workflows/<NAZWA_WORKFLOW>)
+# NAZWA_PROJEKTU
 
-Wyzwalacze (workflow triggers)
-Workflow uruchamia się:
+[![Build](https://github.com/OWNER/REPOSITORY/actions/workflows/build.yml/badge.svg)](https://github.com/OWNER/REPOSITORY/actions/workflows/build.yml)
 
-przy push do gałęzi (np. main)
-przy pull request (dla PR-ów kierowanych do main)
-Sprawdzany projekt i wersja .NET
-Nazwa projektu: <NAZWA_PROJEKTU>
-Używana wersja .NET: <DOTNET_VERSION> (np. 8.0.x)
-Kontrole wykonywane w pipeline
-W ramach workflow wykonywane są kolejno kontrole:
+Krótki opis projektu: co robi aplikacja i do czego służy.
 
-Struktura repozytorium
+## Wymagania
 
-sprawdzany jest obecny i niepusty plik README.md
-walidowana jest ścieżka przekazana jako argument (np. PROJECT_PATH) oraz to, czy wskazuje na istniejący plik projektu
-Restore (przywrócenie zależności)
-przywracane są paczki NuGet dla projektu
-Build (kompilacja)
-projekt jest budowany w trybie Release
-Run lub Publish
-pipeline uruchamia aplikację testowo (run) lub generuje artefakty przez publish (w zależności od konfiguracji w repo)
+- .NET SDK `X.0` (zgodny z wersją użytą w workflow)
+- Git
+- Opcjonalnie: WSL z Ubuntu (do lokalnego uruchamiania skryptów Bash)
 
-Artefakty
+## Uruchomienie lokalne
 
-Nazwa artefaktu: <ARTEFAKT_NAME> (np. build-artifacts)
-Czas przechowywania: 7 dni
-Artefakty są zapisywane po etapie publish/build (zgodnie z tym, co jest skonfigurowane w workflow).
-Logi i artefakty na GitHubie
-Logi jobów: przejdź do zakładki Actions w repozytorium i otwórz uruchomienie workflow — tam zobaczysz logi dla każdego kroku.
-Artefakty: w tym samym uruchomieniu workflow wybierz sekcję Artifacts (lub “Workflow run artifacts”), gdzie pobierzesz zbudowane pliki.
+```powershell
+dotnet restore "./src/MyApp/MyApp.csproj"
+dotnet build "./src/MyApp/MyApp.csproj" --configuration Release
+dotnet run --project "./src/MyApp/MyApp.csproj"
+```
+
+## Continuous Integration
+
+Projekt korzysta z GitHub Actions. Definicja workflow znajduje się w pliku
+[`.github/workflows/build.yml`](.github/workflows/build.yml).
+
+### Kiedy workflow się uruchamia
+
+| Zdarzenie      | Gałąź docelowa | Opis                                               |
+| -------------- | -------------- | -------------------------------------------------- |
+| `push`         | `main`         | Kontrola po każdej zmianie wprowadzonej do `main`. |
+| `pull_request` | `main`         | Kontrola każdego Pull Requesta kierowanego do `main`. |
+
+Push do brancha roboczego uruchamia kontrolę wtedy, gdy ma on otwarty Pull Request do `main`.
+
+### Co jest sprawdzane
+
+- **Projekt:** `./src/MyApp/MyApp.csproj` (zmienna `PROJECT_PATH` w sekcji `env` workflow)
+- **Wersja .NET:** `X.0`
+- **Środowisko:** `ubuntu-latest`
+
+Job `build` wykonuje kolejno:
+
+1. **Checkout repository** – pobranie kodu.
+2. **Setup .NET** – instalacja wskazanej wersji SDK.
+3. **Check repository structure** – uruchomienie skryptu `scripts/check-repository.sh`, który sprawdza, czy:
+   - podano ścieżkę do projektu,
+   - wskazany plik `.csproj` istnieje,
+   - plik `README.md` istnieje i nie jest pusty.
+
+   Przy niespełnieniu warunku skrypt wypisuje komunikat `ERROR: ...` i kończy się kodem `1`, co zatrzymuje job.
+4. **Restore** – przywrócenie zależności (`dotnet restore`).
+5. **Build** – kompilacja w konfiguracji Release (`dotnet build`).
+6. **Publish project** – przygotowanie wyniku kompilacji (`dotnet publish` do `./artifacts/app`).
+7. **Upload build artifact** – wysłanie opublikowanej aplikacji jako artefaktu.
+
+Skrypt można uruchomić lokalnie (w Bashu, np. WSL/Ubuntu) z katalogu głównego repozytorium:
+
+```bash
+bash scripts/check-repository.sh "./src/MyApp/MyApp.csproj"
+echo $?   # 0 oznacza sukces
+```
+
+### Artefakt kompilacji
+
+| Właściwość           | Wartość                                          |
+| -------------------- | ------------------------------------------------ |
+| Nazwa                | `app-<SHA commita>`                              |
+| Zawartość            | wynik `dotnet publish` (katalog `artifacts/app`) |
+| Czas przechowywania  | 7 dni                                            |
+| Brak plików          | workflow kończy się błędem (`if-no-files-found: error`) |
+
+Artefakt to wynik kompilacji przypisany do konkretnego uruchomienia workflow – nie jest to wdrożenie aplikacji.
+
+### Gdzie szukać logów i artefaktów
+
+1. Otwórz repozytorium na GitHubie i przejdź do zakładki **Actions** (albo do sekcji **Checks** w Pull Requeście).
+2. Wybierz interesujące uruchomienie workflow.
+3. **Logi:** otwórz job `build` i rozwiń wybrany step. Przy błędzie szukaj pierwszego czerwonego stepu i komunikatu zaczynającego się od `ERROR:`.
+4. **Artefakt:** na stronie podsumowania uruchomienia przewiń do sekcji **Artifacts** i pobierz paczkę `app-<sha>`.
+
+### Diagnostyka kontrolowanego błędu (Lab 08)
+
+W ramach laboratorium na branchu `ci/lab08-workflow` celowo wywołano błąd pipeline'u:
+
+- **Nieudany step:** Check repository structure
+- **Komunikat:** `ERROR: Project file not found: ./src/ProjectThatDoesNotExist/Project.csproj`
+- **Przyczyna:** `PROJECT_PATH` wskazywał nieistniejący plik
+- **Skutek:** kolejne stepy (restore, build, publish, upload) zostały pominięte (`skipped`)
+- **Naprawa:** przywrócenie poprawnej ścieżki do pliku `.csproj`
+
+Historia commitów i uruchomień Actions zawiera zarówno commit wywołujący błąd, jak i commit z naprawą.
+
+## Struktura repozytorium
+
+```text
+.
+├── .github/
+│   └── workflows/
+│       └── build.yml
+├── scripts/
+│   └── check-repository.sh
+├── src/
+│   └── MyApp/
+│       └── MyApp.csproj
+└── README.md
+```
+
+## Autor
+
+Imię Nazwisko – nr albumu
