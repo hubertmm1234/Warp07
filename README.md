@@ -1,6 +1,6 @@
 # NAZWA_PROJEKTU
 
-[![Build](https://github.com/OWNER/REPOSITORY/actions/workflows/build.yml/badge.svg)](https://github.com/OWNER/REPOSITORY/actions/workflows/build.yml)
+[![Build](https://github.com/hubertmm1234/actions/workflows/build.yml/badge.svg)](https://github.com/hubertmm1234/actions/workflows/build.yml)
 
 Krótki opis projektu: co robi aplikacja i do czego służy.
 
