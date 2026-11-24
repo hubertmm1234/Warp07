@@ -13,6 +13,7 @@ Kontrole wykonywane w pipeline
 W ramach workflow wykonywane są kolejno kontrole:
 
 Struktura repozytorium
+
 sprawdzany jest obecny i niepusty plik README.md
 walidowana jest ścieżka przekazana jako argument (np. PROJECT_PATH) oraz to, czy wskazuje na istniejący plik projektu
 Restore (przywrócenie zależności)
@@ -21,7 +22,9 @@ Build (kompilacja)
 projekt jest budowany w trybie Release
 Run lub Publish
 pipeline uruchamia aplikację testowo (run) lub generuje artefakty przez publish (w zależności od konfiguracji w repo)
+
 Artefakty
+
 Nazwa artefaktu: <ARTEFAKT_NAME> (np. build-artifacts)
 Czas przechowywania: 7 dni
 Artefakty są zapisywane po etapie publish/build (zgodnie z tym, co jest skonfigurowane w workflow).
